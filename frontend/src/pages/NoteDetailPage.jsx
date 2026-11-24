@@ -66,6 +66,16 @@ const NoteDetailPage = () => {
       </div>
     );
   }
+  if (!note) {
+    return (
+      <div className="min-h-screen bg-base-200 flex flex-col items-center justify-center gap-4">
+        <p>Could not load this note.</p>
+        <Link to="/" className="btn btn-ghost">
+          Back to Notes
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-base-200">
