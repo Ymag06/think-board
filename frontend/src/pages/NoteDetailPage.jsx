@@ -66,6 +66,8 @@ const NoteDetailPage = () => {
       </div>
     );
   }
+
+  // If the note is not found, display a message and a link back to the home page
   if (!note) {
     return (
       <div className="min-h-screen bg-base-200 flex flex-col items-center justify-center gap-4">
@@ -122,7 +124,11 @@ const NoteDetailPage = () => {
                 </div>
               </div>
               <div className="card-actions justify-end">
-                <button onClick={handleSave} className="btn btn-primary">
+                <button
+                  onClick={handleSave}
+                  className="btn btn-primary"
+                  disabled={saving}
+                >
                   {saving ? "Saving..." : "Save Changes"}
                 </button>
               </div>

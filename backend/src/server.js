@@ -2,7 +2,7 @@ import express from "express";
 import notesRoutes from "./routes/notesRoutes.js";
 import { connectDB } from "./config/db.js";
 import dotenv from "dotenv";
-import rateLimiter from "./middleware/ratelimiter.js";
+import rateLimiter from "./middleware/rateLimiter.js";
 import cors from "cors";
 
 dotenv.config();
@@ -13,9 +13,10 @@ const PORT = process.env.PORT || 5001;
 //middleware
 
 //cors middleware to allow cross-origin requests from the frontend
+//the frontend is running on a different port than the backend, so we need to allow cross-origin requests from the frontend.
 app.use(
   cors({
-    origin: "http://localhost:5173", // Replace with your frontend URL
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
   }),
 );
 

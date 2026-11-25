@@ -1,4 +1,23 @@
 import Note from "../models/Note.js";
+import mongoose from "mongoose";
+
+function getValidatedNoteData(body) {
+  const { title, content } = body ?? {};
+
+  if (
+    typeof title !== "string" ||
+    typeof content !== "string" ||
+    !title.trim() ||
+    !content.trim()
+  ) {
+    return null;
+  }
+
+  return {
+    title: title.trim(),
+    content: content.trim(),
+  };
+}
 
 export async function getAllNotes(_, res) {
   try {
@@ -10,6 +29,9 @@ export async function getAllNotes(_, res) {
   }
 }
 export async function getNoteByID(req, res) {
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    return res.status(400).json({ message: "Invalid note ID." });
+  }
   try {
     const notes = await Note.findById(req.params.id);
     if (!notes) return res.status(404).json({ message: "Note not found" });
@@ -23,10 +45,20 @@ export async function getNoteByID(req, res) {
 export async function CreateNote(req, res) {
   try {
     //get the title and content from the body (the user input them)
-    const { title, content } = req.body;
+    // const { title, content } = req.body;
 
-    //create a new Note object
-    const note = new Note({ title, content });
+    // //create a new Note object
+    // const note = new Note({ title, content });
+
+    const noteData = getValidatedNoteData(req.body);
+
+    if (!noteData) {
+      return res.status(400).json({
+        message: "Title and content must be non-empty strings.",
+      });
+    }
+
+    const note = new Note(noteData);
 
     const savedNote = await note.save();
     res.status(201).json(savedNote);
@@ -37,19 +69,22 @@ export async function CreateNote(req, res) {
 }
 
 export async function UpdateNote(req, res) {
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    return res.status(400).json({ message: "Invalid note ID." });
+  }
   try {
-    const { title, content } = req.body;
-    const updatedNote = await Note.findByIdAndUpdate(
-      req.params.id,
-      {
-        title,
-        content,
-      },
-      {
-        // return the updated note , without it it only update but still contain previous note
-        new: true,
-      },
-    );
+    const noteData = getValidatedNoteData(req.body);
+
+    if (!noteData) {
+      return res.status(400).json({
+        message: "Title and content must be non-empty strings.",
+      });
+    }
+
+    const updatedNote = await Note.findByIdAndUpdate(req.params.id, noteData, {
+      new: true,
+      runValidators: true,
+    });
 
     // if note not found (incorrect id)
     if (!updatedNote)
@@ -62,13 +97,15 @@ export async function UpdateNote(req, res) {
   }
 }
 export async function DeleteNote(req, res) {
+  if (!mongoose.isValidObjectId(req.params.id)) {
+    return res.status(400).json({ message: "Invalid note ID." });
+  }
   try {
-    const { title, content } = req.body;
     const deletedNote = await Note.findByIdAndDelete(req.params.id);
 
     if (!deletedNote)
       return res.status(404).json({ message: "Note not found" });
-    res.status(201).json({ message: "Note deleted Successfully" });
+    return res.status(204).end();
   } catch (error) {
     console.error("Error in deleteNote controller", error);
     res.status(500).json({ message: "Internal server error" });
